@@ -36,7 +36,7 @@ IGNORAR = {".git", "node_modules", ".astro"}
 CORREO = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]*\w")
 CORREOS_VALIDOS = re.compile(r"^noreply@|@example\.(com|org|net)$|@users\.noreply\.github\.com$")
 # «paquete@1.2.3» no es un correo: versión de npm
-VERSION = re.compile(r"@\d+(\.\d+)*$")
+VERSION = re.compile(r"@\d+(\.\d+)*([-+][\w.-]+)?$")
 RUTA_PERSONAL = re.compile(r"/home/(?!<|usuario|runner)\w+|/Users/(?!<|usuario|runner)\w+|C:\\\\?Users\\\\?(?!<|usuario)\w+")
 MAX_BYTES = 2 * 1024 * 1024
 

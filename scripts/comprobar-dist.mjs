@@ -118,7 +118,13 @@ for (const archivo of html) {
   for (const css of enLinea) {
     for (const [m] of css.matchAll(/(url\(\s*["']?|@import\s+["'])(https?:)?\/\/[^)"';]+/g)) errores.push(`${url}: CSS en línea con recurso de terceros ${m}`);
   }
-  if (/\ssrcset="[^"]*https?:\/\//.test(texto)) errores.push(`${url}: srcset con recurso de terceros`);
+  // JS en línea (<script> sin src): ninguna URL absoluta a otro dominio
+  for (const [, js] of texto.matchAll(/<script\b(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+    for (const [m] of js.matchAll(/["'`](https?:)?\/\/[a-z0-9.-]+\.[a-z]{2,}[^"'`]*["'`]/gi)) {
+      if (!m.includes(new URL(SITIO).host)) errores.push(`${url}: script en línea con URL a otro dominio ${m.slice(0, 80)}`);
+    }
+  }
+  if (/\ssrcset="[^"]*(https?:)?\/\/[^/\s]/.test(texto)) errores.push(`${url}: srcset con recurso de terceros`);
 }
 const ASTRO = join(DIST, "_astro");
 const css = existsSync(ASTRO) ? readdirSync(ASTRO).filter((n) => n.endsWith(".css")) : [];
@@ -132,7 +138,10 @@ for (const nombre of css) {
 if (css.length && !conTemaOscuro) errores.push("el CSS no tiene el bloque prefers-color-scheme: dark");
 for (const nombre of existsSync(ASTRO) ? readdirSync(ASTRO).filter((n) => n.endsWith(".js")) : []) {
   const texto = readFileSync(join(ASTRO, nombre), "utf8");
-  if (/(fetch\(|import\()\s*["'`]https?:\/\//.test(texto)) errores.push(`_astro/${nombre}: petición a otro dominio`);
+  // Cualquier cadena con una URL absoluta en el JS propio es sospechosa (aquí solo hay el conmutador de tema)
+  for (const [m] of texto.matchAll(/["'`](https?:)?\/\/[a-z0-9.-]+\.[a-z]{2,}[^"'`]*["'`]/gi)) {
+    if (!m.includes(new URL(SITIO).host)) errores.push(`_astro/${nombre}: URL a otro dominio ${m.slice(0, 80)}`);
+  }
 }
 if (html.length === 0) errores.push("dist/ no tiene páginas");
 
