@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // Comprueba la web generada en dist/ antes de publicarla:
 //  - rutas reservadas para otras webs del dominio (/meta-harness/, /bartop-arcade/) ausentes;
-//  - cada página tiene su par en el otro idioma;
+//  - cada página tiene su par en el otro idioma y el selector de idioma (y hreflang) lleva a ese par;
+//  - están todas las páginas esperadas (una ficha por archivo de src/content/proyectos/<idioma>/);
+//  - el tema claro/oscuro: script en línea en <head> y CSS con prefers-color-scheme;
 //  - <html lang> correcto según la ruta;
 //  - todo enlace o recurso interno existe;
-//  - ningún recurso (script, estilo, fuente, imagen) se carga desde otro dominio.
+//  - ningún recurso (script, estilo, fuente, imagen) se carga desde otro dominio, tampoco desde <style> o style= en línea.
 // Uso: node scripts/comprobar-dist.mjs [dist]
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
@@ -36,10 +38,16 @@ for (const r of RESERVADAS) {
 
 const aUrl = (archivo) => "/" + relative(DIST, archivo).split(sep).join("/").replace(/index\.html$/, "");
 const existe = (url) => {
-  const limpia = decodeURI(url.split(/[?#]/)[0]);
+  let limpia;
+  try {
+    limpia = decodeURI(url.split(/[?#]/)[0]);
+  } catch {
+    return false;
+  }
   const ruta = join(DIST, limpia);
   if (limpia.endsWith("/")) return existsSync(join(ruta, "index.html"));
-  return existsSync(ruta) || existsSync(`${ruta}.html`);
+  // Con trailingSlash "always", un enlace a una carpeta sin barra final es un error
+  return (existsSync(ruta) && statSync(ruta).isFile()) || existsSync(`${ruta}.html`);
 };
 const parDe = (url) => {
   const enIngles = url.startsWith("/en/");
@@ -61,13 +69,37 @@ for (const archivo of html) {
 
   const par = parDe(url);
   if (!par || !existe(par)) errores.push(`${url}: falta la página equivalente (${par ?? "sin regla"})`);
+
+  // CA1: el selector de idioma y el hreflang alternativo llevan exactamente al par
+  const otro = idioma === "es" ? "en" : "es";
+  const selector = new RegExp(`<a\\b[^>]*\\shreflang="${otro}"[^>]*>`).exec(texto)?.[0];
+  const hrefSelector = selector && /\shref="([^"]+)"/.exec(selector)?.[1];
+  if (hrefSelector !== par) errores.push(`${url}: el selector de idioma lleva a ${hrefSelector ?? "(no hay)"}, se esperaba ${par}`);
+  const alterna = new RegExp(`<link[^>]*rel="alternate"[^>]*hreflang="${otro}"[^>]*href="([^"]+)"`).exec(texto)?.[1];
+  if (alterna !== SITIO + par) errores.push(`${url}: hreflang="${otro}" apunta a ${alterna ?? "(no hay)"}, se esperaba ${SITIO + par}`);
+
+  // CA5: el tema se fija antes de pintar (script en línea dentro de <head>)
+  const head = /<head>([\s\S]*?)<\/head>/.exec(texto)?.[1] ?? "";
+  if (!/<script>[^<]*localStorage\.getItem\("tema"\)/.test(head)) errores.push(`${url}: falta el script del tema en <head>`);
+}
+
+// Páginas esperadas: las fijas y una ficha por archivo de contenido
+const fijas = ["/", "/proyectos/", "/cv/", "/contacto/", "/en/", "/en/projects/", "/en/cv/", "/en/contact/", "/404.html"];
+for (const u of fijas) if (!existe(u)) errores.push(`falta la página ${u}`);
+for (const [idioma, base] of [["es", "/proyectos/"], ["en", "/en/projects/"]]) {
+  const carpeta = join("src", "content", "proyectos", idioma);
+  if (!existsSync(carpeta)) continue;
+  for (const md of readdirSync(carpeta).filter((n) => n.endsWith(".md"))) {
+    const u = `${base}${md.replace(/\.md$/, "")}/`;
+    if (!existe(u)) errores.push(`falta la ficha ${u}`);
+  }
 }
 
 for (const archivo of html) {
   const url = aUrl(archivo);
   const texto = readFileSync(archivo, "utf8");
   // Enlaces y recursos internos
-  for (const [, atributo, valor] of texto.matchAll(/\s(href|src)="([^"]+)"/g)) {
+  for (const [, atributo, valor] of texto.matchAll(/\s(href|src|srcset|poster|data)="([^"]+)"/g)) {
     let destino = valor;
     if (destino.startsWith(SITIO)) destino = destino.slice(SITIO.length) || "/";
     if (!destino.startsWith("/") || destino.startsWith("//")) continue;
@@ -81,11 +113,28 @@ for (const archivo of html) {
     if (/^<link\b/.test(etiqueta) && /\srel="(canonical|alternate)"/.test(etiqueta)) continue;
     errores.push(`${url}: recurso de terceros ${etiqueta.slice(0, 120)}`);
   }
+  // CSS en línea (<style> y style=): url() o @import a otro dominio
+  const enLinea = [...texto.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g), ...texto.matchAll(/\sstyle="([^"]*)"/g)].map((m) => m[1]);
+  for (const css of enLinea) {
+    for (const [m] of css.matchAll(/(url\(\s*["']?|@import\s+["'])(https?:)?\/\/[^)"';]+/g)) errores.push(`${url}: CSS en línea con recurso de terceros ${m}`);
+  }
+  if (/\ssrcset="[^"]*https?:\/\//.test(texto)) errores.push(`${url}: srcset con recurso de terceros`);
 }
-for (const css of readdirSync(join(DIST, "_astro")).filter((n) => n.endsWith(".css"))) {
-  const texto = readFileSync(join(DIST, "_astro", css), "utf8");
-  for (const [m] of texto.matchAll(/url\((["']?)(https?:)?\/\/[^)]+\)/g)) errores.push(`_astro/${css}: ${m}`);
+const ASTRO = join(DIST, "_astro");
+const css = existsSync(ASTRO) ? readdirSync(ASTRO).filter((n) => n.endsWith(".css")) : [];
+if (css.length === 0) errores.push("no hay CSS en dist/_astro/");
+let conTemaOscuro = false;
+for (const nombre of css) {
+  const texto = readFileSync(join(ASTRO, nombre), "utf8");
+  if (/prefers-color-scheme:\s*dark/.test(texto)) conTemaOscuro = true;
+  for (const [m] of texto.matchAll(/(url\(\s*["']?|@import\s+["'])(https?:)?\/\/[^)"';]+/g)) errores.push(`_astro/${nombre}: ${m}`);
 }
+if (css.length && !conTemaOscuro) errores.push("el CSS no tiene el bloque prefers-color-scheme: dark");
+for (const nombre of existsSync(ASTRO) ? readdirSync(ASTRO).filter((n) => n.endsWith(".js")) : []) {
+  const texto = readFileSync(join(ASTRO, nombre), "utf8");
+  if (/(fetch\(|import\()\s*["'`]https?:\/\//.test(texto)) errores.push(`_astro/${nombre}: petición a otro dominio`);
+}
+if (html.length === 0) errores.push("dist/ no tiene páginas");
 
 for (const e of errores) console.log(`✖ ${e}`);
 console.log(`${html.length} páginas revisadas · errores: ${errores.length}`);

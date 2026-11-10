@@ -6,6 +6,7 @@ Adaptado de la comprobación de meta-harness/tools/publicar.py.
 Uso:
   python3 -I tools/comprobar-privacidad.py [--versionados] [--lista RUTA] CARPETA [CARPETA …]
 
+  --saltar-ausentes  una carpeta que no existe se salta (sin la opción, sale con código 2)
   --versionados   revisa solo los archivos que git versiona en cada carpeta (lo que sube un push);
                   sin la opción revisa todo menos .git/, node_modules/ y .astro/
   --lista RUTA    lista de textos prohibidos; por defecto, la variable PRIVACIDAD_LISTA (contenido)
@@ -33,7 +34,9 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 LISTA_POR_DEFECTO = RAIZ / "tools" / "privacidad.lista"
 IGNORAR = {".git", "node_modules", ".astro"}
 CORREO = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]*\w")
-CORREOS_VALIDOS = re.compile(r"noreply@|@example\.(com|org|net)$|@users\.noreply\.github\.com$")
+CORREOS_VALIDOS = re.compile(r"^noreply@|@example\.(com|org|net)$|@users\.noreply\.github\.com$")
+# «paquete@1.2.3» no es un correo: versión de npm
+VERSION = re.compile(r"@\d+(\.\d+)*$")
 RUTA_PERSONAL = re.compile(r"/home/(?!<|usuario|runner)\w+|/Users/(?!<|usuario|runner)\w+|C:\\\\?Users\\\\?(?!<|usuario)\w+")
 MAX_BYTES = 2 * 1024 * 1024
 
@@ -113,7 +116,7 @@ def comprobar(carpeta, prohibidos, permitidos, versionados):
                 if p.search(linea):
                     hallazgos.append(f"{rel}:{n}: texto prohibido de la lista")  # no se repite el texto privado
             for m in CORREO.finditer(linea):
-                if not CORREOS_VALIDOS.search(m.group(0)) and not re.search(r"@\d", m.group(0)):
+                if not CORREOS_VALIDOS.search(m.group(0)) and not VERSION.search(m.group(0)):
                     hallazgos.append(f"{rel}:{n}: correo «{m.group(0)}»")
             m = RUTA_PERSONAL.search(linea)
             if m:
@@ -122,12 +125,17 @@ def comprobar(carpeta, prohibidos, permitidos, versionados):
 
 
 def main():
-    args, versionados, lista = sys.argv[1:], False, None
+    args, versionados, saltar, lista = sys.argv[1:], False, False, None
     if "--versionados" in args:
         args.remove("--versionados")
         versionados = True
+    if "--saltar-ausentes" in args:
+        args.remove("--saltar-ausentes")
+        saltar = True
     if "--lista" in args:
         i = args.index("--lista")
+        if i + 1 >= len(args):
+            sys.exit("--lista necesita una ruta")
         lista = args[i + 1]
         del args[i:i + 2]
     if not args or any(a.startswith("--") for a in args):
@@ -137,8 +145,11 @@ def main():
     for a in args:
         carpeta = pathlib.Path(a).resolve()
         if not carpeta.is_dir():
-            print(f"· {a}: no existe, se salta")
-            continue
+            if saltar:
+                print(f"· {a}: no existe, se salta")
+                continue
+            print(f"✖ {a}: no existe (nada que comprobar no es lo mismo que nada encontrado)")
+            sys.exit(2)
         hallazgos += comprobar(carpeta, prohibidos, permitidos, versionados)
     for h in hallazgos:
         print(h)

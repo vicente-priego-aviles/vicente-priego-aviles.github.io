@@ -51,9 +51,6 @@ jobs:
           PRIVACIDAD_LISTA: ${{ secrets.PRIVACIDAD_LISTA }}
         run: python3 -I scripts/comprobar-privacidad.py dist
 
-      - name: Configurar Pages
-        uses: actions/configure-pages@v6
-
       - name: Subir la web
         uses: actions/upload-pages-artifact@v5
         with:
@@ -72,3 +69,11 @@ jobs:
       - name: Publicar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      # Las webs de otros repos en el mismo dominio deben seguir respondiendo (CA4)
+      - name: Comprobar el sitio publicado
+        run: |
+          for ruta in / /en/ /proyectos/ /en/projects/ /meta-harness/ /bartop-arcade/; do
+            curl -fsS --retry 6 --retry-delay 10 --retry-all-errors -o /dev/null "https://vicente-priego-aviles.github.io$ruta"
+            echo "✔ $ruta"
+          done
