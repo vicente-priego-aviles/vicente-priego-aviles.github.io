@@ -1,0 +1,138 @@
+{
+  "direccion": "TB",
+  "maxCaracteres": 24,
+  "huecoX": 60,
+  "huecoY": 90,
+  "nodos": [
+    {
+      "id": "cliente",
+      "texto": "Customer",
+      "color": "blanco",
+      "discontinuo": true,
+      "fila": 0,
+      "col": 1
+    },
+    {
+      "id": "reservas",
+      "texto": "servicio-reservas\n(coordinator)",
+      "color": "verde",
+      "fila": 1,
+      "col": 1
+    },
+    {
+      "id": "camunda",
+      "texto": "Camunda 8\n(Zeebe)",
+      "color": "naranja",
+      "fila": 2,
+      "col": 1
+    },
+    {
+      "id": "subcli",
+      "texto": "Customer handling",
+      "color": "amarillo",
+      "fila": 3,
+      "col": 0
+    },
+    {
+      "id": "subres",
+      "texto": "Booking",
+      "color": "amarillo",
+      "fila": 3,
+      "col": 1
+    },
+    {
+      "id": "subpago",
+      "texto": "Payment",
+      "color": "amarillo",
+      "fila": 3,
+      "col": 2
+    },
+    {
+      "id": "clientes",
+      "texto": "servicio-clientes",
+      "fila": 4,
+      "col": 0
+    },
+    {
+      "id": "viaje",
+      "texto": "servicio-vuelos\nservicio-hoteles\nservicio-alquiler-coches",
+      "fila": 4,
+      "col": 1
+    },
+    {
+      "id": "pagos",
+      "texto": "servicio-pagos",
+      "fila": 4,
+      "col": 2
+    }
+  ],
+  "aristas": [
+    {
+      "de": "cliente",
+      "a": "reservas",
+      "texto": "request",
+      "estilo": "discontinua"
+    },
+    {
+      "de": "reservas",
+      "a": "camunda",
+      "texto": "starts the BPMN process"
+    },
+    {
+      "de": "camunda",
+      "a": "subcli"
+    },
+    {
+      "de": "camunda",
+      "a": "subres"
+    },
+    {
+      "de": "camunda",
+      "a": "subpago"
+    },
+    {
+      "de": "subcli",
+      "a": "clientes",
+      "texto": "workers"
+    },
+    {
+      "de": "subres",
+      "a": "viaje",
+      "texto": "workers"
+    },
+    {
+      "de": "subpago",
+      "a": "pagos",
+      "texto": "workers"
+    }
+  ],
+  "grupos": [
+    {
+      "texto": "BPMN subprocesses",
+      "nodos": [
+        "subcli",
+        "subres",
+        "subpago"
+      ],
+      "color": "gris"
+    }
+  ],
+  "leyenda": [
+    {
+      "color": "verde",
+      "texto": "coordinator"
+    },
+    {
+      "color": "naranja",
+      "texto": "process engine"
+    },
+    {
+      "color": "amarillo",
+      "texto": "subprocess"
+    },
+    {
+      "color": "azul",
+      "texto": "microservice (job workers)"
+    }
+  ]
+}

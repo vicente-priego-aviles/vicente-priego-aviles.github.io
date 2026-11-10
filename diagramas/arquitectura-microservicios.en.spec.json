@@ -1,0 +1,119 @@
+{
+  "direccion": "LR",
+  "maxCaracteres": 24,
+  "huecoX": 70,
+  "huecoY": 100,
+  "nodos": [
+    {
+      "id": "catalogo",
+      "texto": "servicio-catalogo",
+      "color": "verde",
+      "fila": 0,
+      "col": 1
+    },
+    {
+      "id": "neo4j",
+      "texto": "Neo4j",
+      "color": "morado",
+      "forma": "ellipse",
+      "fila": 0,
+      "col": 0
+    },
+    {
+      "id": "pedidos",
+      "texto": "servicio-pedidos",
+      "color": "verde",
+      "fila": 0,
+      "col": 3
+    },
+    {
+      "id": "pg1",
+      "texto": "PostgreSQL",
+      "color": "morado",
+      "forma": "ellipse",
+      "fila": 0,
+      "col": 4
+    },
+    {
+      "id": "rabbit",
+      "texto": "RabbitMQ",
+      "color": "naranja",
+      "fila": 1,
+      "col": 1
+    },
+    {
+      "id": "kafka",
+      "texto": "Kafka",
+      "color": "naranja",
+      "fila": 1,
+      "col": 3
+    },
+    {
+      "id": "inventario",
+      "texto": "servicio-inventario",
+      "color": "verde",
+      "fila": 2,
+      "col": 2
+    },
+    {
+      "id": "pg2",
+      "texto": "PostgreSQL",
+      "color": "morado",
+      "forma": "ellipse",
+      "fila": 3,
+      "col": 2
+    }
+  ],
+  "aristas": [
+    {
+      "de": "pedidos",
+      "a": "catalogo",
+      "texto": "HTTP Service Client"
+    },
+    {
+      "de": "catalogo",
+      "a": "neo4j"
+    },
+    {
+      "de": "pedidos",
+      "a": "pg1"
+    },
+    {
+      "de": "catalogo",
+      "a": "rabbit",
+      "texto": "producto-creado"
+    },
+    {
+      "de": "pedidos",
+      "a": "kafka",
+      "texto": "pedido-creado"
+    },
+    {
+      "de": "rabbit",
+      "a": "inventario"
+    },
+    {
+      "de": "kafka",
+      "a": "inventario"
+    },
+    {
+      "de": "inventario",
+      "a": "pg2"
+    }
+  ],
+  "leyenda": [
+    {
+      "color": "verde",
+      "texto": "Spring Boot microservice"
+    },
+    {
+      "color": "morado",
+      "texto": "database",
+      "forma": "ellipse"
+    },
+    {
+      "color": "naranja",
+      "texto": "messaging"
+    }
+  ]
+}

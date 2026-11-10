@@ -1,0 +1,264 @@
+/* Tokens: gris pizarra + acento verde azulado. Claro por defecto; oscuro por sistema o por elección. */
+:root {
+  color-scheme: light;
+  --fondo: #f8fafc;
+  --superficie: #ffffff;
+  --texto: #0f172a;
+  --texto-suave: #475569;
+  --borde: #e2e8f0;
+  --acento: #0f766e;
+  --acento-fuerte: #115e59;
+  --acento-suave: #ccfbf1;
+  --sombra: 0 1px 2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.08);
+  --radio: 10px;
+  --ancho: 68rem;
+  --ancho-texto: 42rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --fondo: #0f172a;
+    --superficie: #1e293b;
+    --texto: #e2e8f0;
+    --texto-suave: #94a3b8;
+    --borde: #334155;
+    --acento: #2dd4bf;
+    --acento-fuerte: #5eead4;
+    --acento-suave: #134e4a;
+    --sombra: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --fondo: #0f172a;
+  --superficie: #1e293b;
+  --texto: #e2e8f0;
+  --texto-suave: #94a3b8;
+  --borde: #334155;
+  --acento: #2dd4bf;
+  --acento-fuerte: #5eead4;
+  --acento-suave: #134e4a;
+  --sombra: none;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente-texto);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+  margin: 0 0 0.75rem;
+}
+
+h2 {
+  font-size: 1.45rem;
+  margin: 2.5rem 0 1rem;
+}
+
+h3 {
+  font-size: 1.125rem;
+  margin: 0 0 0.4rem;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--acento);
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--acento-fuerte);
+}
+
+:focus-visible {
+  outline: 3px solid var(--acento);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+code,
+.mono {
+  font-family: var(--fuente-mono);
+  font-size: 0.9em;
+}
+
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.contenedor {
+  width: 100%;
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 640px) {
+  .contenedor {
+    padding: 0 24px;
+  }
+}
+
+.texto {
+  max-width: var(--ancho-texto);
+}
+
+.suave {
+  color: var(--texto-suave);
+}
+
+.saltar {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  background: var(--superficie);
+  color: var(--texto);
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--acento);
+  border-radius: var(--radio);
+  z-index: 10;
+}
+
+.saltar:focus {
+  top: 12px;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.etiquetas li {
+  font-family: var(--fuente-mono);
+  font-size: 0.8rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  color: var(--texto-suave);
+  background: var(--fondo);
+}
+
+.rejilla {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  color: var(--texto);
+  text-decoration: none;
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.boton:hover {
+  border-color: var(--acento);
+  color: var(--texto);
+}
+
+.boton-principal {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--fondo);
+}
+
+.boton-principal:hover {
+  background: var(--acento-fuerte);
+  color: var(--fondo);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.5rem 0 0;
+}
+
+/* Contenido de las fichas (Markdown) */
+.prosa {
+  max-width: var(--ancho-texto);
+}
+
+.prosa ul {
+  padding-left: 1.25rem;
+}
+
+.prosa li {
+  margin-bottom: 0.35rem;
+}
+
+.figura {
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  /* Los diagramas son de trazo oscuro sobre papel: fondo claro en los dos temas */
+  background: #ffffff;
+}
+
+.figura img {
+  display: block;
+  margin: 0 auto;
+}
+
+.figura figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #475569;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a,
+  .boton {
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+  }
+}

@@ -1,0 +1,61 @@
+---
+import { ruta, type Idioma } from "../i18n/textos";
+import { slugDe, type Proyecto } from "../lib/proyectos";
+
+interface Props {
+  idioma: Idioma;
+  proyecto: Proyecto;
+  nivel?: "h2" | "h3";
+}
+
+const { idioma, proyecto, nivel = "h3" } = Astro.props;
+const { titulo, resumen, tecnologias } = proyecto.data;
+const Titulo = nivel;
+---
+
+<article class="tarjeta">
+  <Titulo class="titulo">
+    <a href={ruta(idioma, "proyectos", slugDe(proyecto))}>{titulo}</a>
+  </Titulo>
+  <p>{resumen}</p>
+  <ul class="etiquetas" aria-label={idioma === "es" ? "Tecnologías" : "Technologies"}>
+    {tecnologias.map((t) => <li>{t}</li>)}
+  </ul>
+</article>
+
+<style>
+  .tarjeta {
+    position: relative;
+    height: 100%;
+    padding: 1.1rem 1.2rem 1.2rem;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+  }
+  .tarjeta:hover,
+  .tarjeta:focus-within {
+    border-color: var(--acento);
+  }
+  .titulo {
+    font-size: 1.05rem;
+    margin: 0 0 0.4rem;
+    font-family: var(--fuente-mono);
+    font-weight: 400;
+  }
+  .titulo a {
+    color: var(--texto);
+    text-decoration: none;
+  }
+  /* Toda la tarjeta es clicable, pero el enlace sigue siendo uno solo */
+  .titulo a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radio);
+  }
+  p {
+    color: var(--texto-suave);
+    font-size: 0.95rem;
+  }
+</style>

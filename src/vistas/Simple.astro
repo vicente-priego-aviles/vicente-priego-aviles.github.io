@@ -1,0 +1,48 @@
+---
+// Páginas de una sola sección: CV provisional y contacto.
+import Base from "../layouts/Base.astro";
+import { ruta, sitio, textos, type Idioma } from "../i18n/textos";
+
+interface Props {
+  idioma: Idioma;
+  pagina: "cv" | "contacto";
+}
+
+const { idioma, pagina } = Astro.props;
+const t = textos[idioma];
+const otro: Idioma = idioma === "es" ? "en" : "es";
+const titulo = pagina === "cv" ? t.cvTitulo : t.contactoTitulo;
+---
+
+<Base idioma={idioma} titulo={titulo} alternativa={ruta(otro, pagina)} activa={pagina}>
+  <div class="contenedor texto">
+    <h1 class="arriba">{titulo}</h1>
+    {
+      pagina === "cv" ? (
+        <p>{t.cvPreparacion}</p>
+      ) : (
+        <>
+          {sitio.correo ? (
+            <p>
+              <a href={`mailto:${sitio.correo}`}>{sitio.correo}</a>
+            </p>
+          ) : (
+            <p>{t.contactoProximamente}</p>
+          )}
+          <p>{t.contactoMientras}</p>
+        </>
+      )
+    }
+    <div class="acciones">
+      <a class="boton" href={sitio.github}>GitHub</a>
+      {sitio.linkedin && <a class="boton" href={sitio.linkedin}>LinkedIn</a>}
+      <a class="boton" href={sitio.javacadabra}>Javacadabra</a>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .arriba {
+    margin-top: 3rem;
+  }
+</style>

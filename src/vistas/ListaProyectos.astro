@@ -1,0 +1,49 @@
+---
+import Base from "../layouts/Base.astro";
+import Tarjeta from "../components/Tarjeta.astro";
+import { ruta, textos, type Idioma } from "../i18n/textos";
+import { AREAS, proyectos } from "../lib/proyectos";
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+const t = textos[idioma];
+const todos = await proyectos(idioma);
+const grupos = AREAS.map((area) => ({ area, lista: todos.filter((p) => p.data.area === area) })).filter(
+  (g) => g.lista.length > 0,
+);
+---
+
+<Base
+  idioma={idioma}
+  titulo={t.proyectosTitulo}
+  alternativa={ruta(idioma === "es" ? "en" : "es", "proyectos")}
+  activa="proyectos"
+>
+  <div class="contenedor">
+    <h1 class="arriba">{t.proyectosTitulo}</h1>
+    <p class="texto suave">{t.proyectosIntro}</p>
+    {
+      grupos.map(({ area, lista }) => (
+        <section aria-labelledby={`area-${area}`}>
+          <h2 id={`area-${area}`}>{t.areas[area]}</h2>
+          <ul class="rejilla">
+            {lista.map((p) => (
+              <li>
+                <Tarjeta idioma={idioma} proyecto={p} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .arriba {
+    margin-top: 3rem;
+  }
+</style>

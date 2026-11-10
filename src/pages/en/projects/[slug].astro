@@ -1,0 +1,12 @@
+---
+import FichaProyecto from "../../../vistas/FichaProyecto.astro";
+import { proyectos, slugDe } from "../../../lib/proyectos";
+
+export async function getStaticPaths() {
+  return (await proyectos("en")).map((proyecto) => ({ params: { slug: slugDe(proyecto) }, props: { proyecto } }));
+}
+
+const { proyecto } = Astro.props;
+---
+
+<FichaProyecto idioma="en" proyecto={proyecto} />

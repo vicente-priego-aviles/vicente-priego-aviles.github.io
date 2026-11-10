@@ -1,0 +1,70 @@
+---
+import Base from "../layouts/Base.astro";
+import Tarjeta from "../components/Tarjeta.astro";
+import { ruta, sitio, textos, type Idioma } from "../i18n/textos";
+import { destacados } from "../lib/proyectos";
+
+interface Props {
+  idioma: Idioma;
+}
+
+const { idioma } = Astro.props;
+const t = textos[idioma];
+const lista = await destacados(idioma);
+---
+
+<Base idioma={idioma} alternativa={ruta(idioma === "es" ? "en" : "es", "inicio")} activa="inicio">
+  <section class="contenedor presentacion">
+    <p class="suave mono titular">{t.titular}</p>
+    <h1>{t.hola}</h1>
+    <div class="texto">
+      {t.presentacion.map((p) => <p>{p}</p>)}
+    </div>
+    <div class="acciones">
+      <a class="boton boton-principal" href={ruta(idioma, "proyectos")}>{t.nav.proyectos}</a>
+      <a class="boton" href={ruta(idioma, "cv")}>{t.nav.cv}</a>
+      <a class="boton" href={sitio.github}>GitHub</a>
+      <a class="boton" href={sitio.javacadabra}>Javacadabra</a>
+    </div>
+  </section>
+
+  <section class="contenedor" aria-labelledby="destacados">
+    <h2 id="destacados">{t.destacados}</h2>
+    <ul class="rejilla">
+      {lista.map((p) => <li><Tarjeta idioma={idioma} proyecto={p} /></li>)}
+    </ul>
+    <p class="mas"><a href={ruta(idioma, "proyectos")}>{t.todos} →</a></p>
+  </section>
+
+  <section class="contenedor" aria-labelledby="javacadabra">
+    <div class="aviso">
+      <h2 id="javacadabra">{t.javacadabra.titulo}</h2>
+      <p>{t.javacadabra.texto}</p>
+      <a href={sitio.javacadabra}>{t.javacadabra.enlace} →</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .presentacion {
+    padding-top: 3.5rem;
+  }
+  .titular {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .mas {
+    margin-top: 1.25rem;
+  }
+  .aviso {
+    margin-top: 1rem;
+    padding: 1.25rem 1.4rem;
+    border-left: 4px solid var(--acento);
+    background: var(--superficie);
+    border-radius: 0 var(--radio) var(--radio) 0;
+  }
+  .aviso h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+  }
+</style>

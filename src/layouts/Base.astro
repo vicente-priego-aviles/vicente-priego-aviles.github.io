@@ -1,0 +1,74 @@
+---
+import { Font } from "astro:assets";
+import "../styles/global.css";
+import Cabecera from "../components/Cabecera.astro";
+import Pie from "../components/Pie.astro";
+import { textos, type ClaveRuta, type Idioma } from "../i18n/textos";
+
+interface Props {
+  idioma: Idioma;
+  titulo?: string;
+  descripcion?: string;
+  /** Ruta de la página equivalente en el otro idioma */
+  alternativa: string;
+  activa?: ClaveRuta;
+  conDiagramas?: boolean;
+  /** Sin URL canónica ni alternativas (página 404) */
+  sinCanonica?: boolean;
+}
+
+const { idioma, titulo, descripcion, alternativa, activa, conDiagramas = false, sinCanonica = false } = Astro.props;
+const t = textos[idioma];
+const nombre = "Vicente Priego Avilés";
+const tituloCompleto = titulo ? `${titulo} · ${nombre}` : `${nombre} · ${t.titular.split(" · ")[0]}`;
+const canonica = new URL(Astro.url.pathname, Astro.site);
+const otro: Idioma = idioma === "es" ? "en" : "es";
+const urlOtro = new URL(alternativa, Astro.site);
+---
+
+<!doctype html>
+<html lang={idioma}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tituloCompleto}</title>
+    <meta name="description" content={descripcion ?? t.descripcion} />
+    {
+      !sinCanonica && (
+        <>
+          <link rel="canonical" href={canonica} />
+          <link rel="alternate" hreflang={idioma} href={canonica} />
+          <link rel="alternate" hreflang={otro} href={urlOtro} />
+          <meta property="og:url" content={canonica} />
+        </>
+      )
+    }
+    {sinCanonica && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="color-scheme" content="light dark" />
+    <meta property="og:title" content={tituloCompleto} />
+    <meta property="og:description" content={descripcion ?? t.descripcion} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={idioma === "es" ? "es_ES" : "en_GB"} />
+    <script is:inline>
+      // Tema elegido por el visitante (solo en su navegador); sin elección, manda el sistema.
+      (() => {
+        let tema = null;
+        try {
+          tema = localStorage.getItem("tema");
+        } catch (e) {}
+        if (tema === "light" || tema === "dark") document.documentElement.dataset.theme = tema;
+      })();
+    </script>
+    <Font cssVariable="--fuente-texto" preload={[{ weight: "400", style: "normal" }]} />
+    <Font cssVariable="--fuente-mono" />
+  </head>
+  <body>
+    <a class="saltar" href="#contenido">{t.saltar}</a>
+    <Cabecera idioma={idioma} alternativa={alternativa} activa={activa} />
+    <main id="contenido" tabindex="-1">
+      <slot />
+    </main>
+    <Pie idioma={idioma} conDiagramas={conDiagramas} />
+  </body>
+</html>

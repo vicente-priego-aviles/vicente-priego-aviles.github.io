@@ -1,0 +1,71 @@
+---
+import { render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { ruta, textos, type Idioma } from "../i18n/textos";
+import { slugDe, type Proyecto } from "../lib/proyectos";
+
+interface Props {
+  idioma: Idioma;
+  proyecto: Proyecto;
+}
+
+const { idioma, proyecto } = Astro.props;
+const t = textos[idioma];
+const { titulo, resumen, tecnologias, repo, web, webTexto, area, diagrama } = proyecto.data;
+const { Content } = await render(proyecto);
+const otro: Idioma = idioma === "es" ? "en" : "es";
+---
+
+<Base
+  idioma={idioma}
+  titulo={titulo}
+  descripcion={resumen}
+  alternativa={ruta(otro, "proyectos", slugDe(proyecto))}
+  activa="proyectos"
+  conDiagramas={Boolean(diagrama)}
+>
+  <article class="contenedor">
+    <p class="miga"><a href={ruta(idioma, "proyectos")}>← {t.volver}</a></p>
+    <p class="suave mono area">{t.areas[area]}</p>
+    <h1 class="mono">{titulo}</h1>
+    <p class="texto entrada">{resumen}</p>
+    <ul class="etiquetas" aria-label={idioma === "es" ? "Tecnologías" : "Technologies"}>
+      {tecnologias.map((x) => <li>{x}</li>)}
+    </ul>
+    <div class="acciones">
+      <a class="boton boton-principal" href={repo}>{t.verRepo}</a>
+      {web && <a class="boton" href={web}>{webTexto ?? web}</a>}
+    </div>
+    {
+      diagrama && (
+        <figure class="figura">
+          <img src={diagrama.src} alt={diagrama.alt} loading="lazy" decoding="async" />
+        </figure>
+      )
+    }
+    <div class="prosa">
+      <Content />
+    </div>
+  </article>
+</Base>
+
+<style>
+  .miga {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+  }
+  .area {
+    margin: 1.5rem 0 0.25rem;
+    font-size: 0.85rem;
+  }
+  h1 {
+    font-weight: 400;
+    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
+  }
+  .entrada {
+    font-size: 1.15rem;
+  }
+  .prosa {
+    margin-top: 2rem;
+  }
+</style>

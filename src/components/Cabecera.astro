@@ -1,0 +1,122 @@
+---
+import { ruta, textos, sitio, type ClaveRuta, type Idioma } from "../i18n/textos";
+
+interface Props {
+  idioma: Idioma;
+  alternativa: string;
+  activa?: ClaveRuta;
+}
+
+const { idioma, alternativa, activa } = Astro.props;
+const t = textos[idioma];
+const enlaces: ClaveRuta[] = ["proyectos", "cv", "contacto"];
+---
+
+<header class="cabecera">
+  <div class="contenedor fila">
+    <a class="marca" href={ruta(idioma, "inicio")} aria-current={activa === "inicio" ? "page" : undefined}>
+      {sitio.nombre}
+    </a>
+    <nav aria-label={idioma === "es" ? "Principal" : "Main"}>
+      <ul>
+        {
+          enlaces.map((clave) => (
+            <li>
+              <a href={ruta(idioma, clave)} aria-current={activa === clave ? "page" : undefined}>
+                {t.nav[clave]}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href={sitio.javacadabra}>Javacadabra</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="herramientas">
+      <a class="boton" href={alternativa} hreflang={idioma === "es" ? "en" : "es"} lang={idioma === "es" ? "en" : "es"} aria-label={t.otroIdiomaAria}>
+        {idioma === "es" ? "EN" : "ES"}
+      </a>
+      <button class="boton" type="button" id="tema" aria-label={t.tema} title={t.tema}>
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const boton = document.getElementById("tema");
+  const raiz = document.documentElement;
+  const oscuroSistema = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const actual = () => raiz.dataset.theme ?? (oscuroSistema() ? "dark" : "light");
+  const marcar = () => boton?.setAttribute("aria-pressed", String(actual() === "dark"));
+  marcar();
+  boton?.addEventListener("click", () => {
+    const nuevo = actual() === "dark" ? "light" : "dark";
+    raiz.dataset.theme = nuevo;
+    try {
+      localStorage.setItem("tema", nuevo);
+    } catch (e) {}
+    marcar();
+  });
+</script>
+
+<style>
+  .cabecera {
+    border-bottom: 1px solid var(--borde);
+    background: var(--superficie);
+  }
+  .fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  .marca {
+    font-weight: 600;
+    color: var(--texto);
+    text-decoration: none;
+    margin-right: auto;
+  }
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  nav a {
+    color: var(--texto-suave);
+    text-decoration: none;
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
+  }
+  nav a:hover,
+  nav a[aria-current="page"] {
+    color: var(--texto);
+    border-bottom-color: var(--acento);
+  }
+  .herramientas {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .herramientas .boton {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+    font-family: var(--fuente-mono);
+  }
+  @media (max-width: 560px) {
+    .marca {
+      flex-basis: 100%;
+    }
+    nav {
+      margin-right: auto;
+    }
+  }
+</style>

@@ -1,0 +1,45 @@
+---
+import { textos, sitio, type Idioma } from "../i18n/textos";
+
+interface Props {
+  idioma: Idioma;
+  conDiagramas?: boolean;
+}
+
+const { idioma, conDiagramas = false } = Astro.props;
+const t = textos[idioma];
+const anio = new Date().getFullYear();
+---
+
+<footer class="pie">
+  <div class="contenedor">
+    <p>
+      © {anio} {sitio.nombre} · <a href={sitio.github}>GitHub</a> · <a href={sitio.javacadabra}>Javacadabra</a>
+      {sitio.linkedin && <> · <a href={sitio.linkedin}>LinkedIn</a></>}
+    </p>
+    <p class="suave">
+      {t.pie.licencia}{" "}
+      {t.pie.tipografias}{" "}<a href="/licencias/IBM-Plex-Sans-OFL.txt">IBM Plex Sans</a>{" "}{t.pie.y}{" "}
+      <a href="/licencias/IBM-Plex-Mono-OFL.txt">IBM Plex Mono</a> (SIL OFL 1.1).
+      {
+        conDiagramas && (
+          <>
+            {" "}{t.pie.diagramas}{" "}<a href="/licencias/Excalifont-OFL.txt">Excalifont</a> (SIL OFL 1.1).
+          </>
+        )
+      }
+    </p>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    margin-top: 4rem;
+    border-top: 1px solid var(--borde);
+    padding: 1.5rem 0 2rem;
+    font-size: 0.9rem;
+  }
+  .pie p {
+    margin: 0 0 0.4rem;
+  }
+</style>

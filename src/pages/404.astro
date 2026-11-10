@@ -1,0 +1,22 @@
+---
+// Página 404 bilingüe (GitHub Pages sirve una sola 404.html para todo el sitio de usuario).
+import Base from "../layouts/Base.astro";
+import { ruta, textos } from "../i18n/textos";
+---
+
+<Base idioma="es" titulo={textos.es.noEncontrada} alternativa={ruta("en", "inicio")} sinCanonica>
+  <div class="contenedor texto">
+    <h1 class="arriba">{textos.es.noEncontrada}</h1>
+    <p>{textos.es.noEncontradaTexto} <a href={ruta("es", "inicio")}>{textos.es.nav.inicio}</a></p>
+    <div lang="en">
+      <h2>{textos.en.noEncontrada}</h2>
+      <p>{textos.en.noEncontradaTexto} <a href={ruta("en", "inicio")}>{textos.en.nav.inicio}</a></p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .arriba {
+    margin-top: 3rem;
+  }
+</style>
